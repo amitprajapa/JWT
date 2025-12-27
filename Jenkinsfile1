@@ -1,0 +1,63 @@
+pipeline {
+    agent any
+    
+    tools {
+        maven 'Maven3'          // Name of Maven tool configured in Jenkins
+        jdk 'jdk17'              // Name of JDK configured in Jenkins (or jdk11)
+    }
+
+    stages {
+
+        stage('Clone Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/amitprajapa/JWT.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean install -DskipTests'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn package -DskipTests'
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                }
+            }
+        }
+
+        stage('Deploy (Optional)') {
+            when {
+                branch 'main'
+            }
+            steps {
+                echo '🚀 Deploy stage placeholder: Copy or Deploy your jar here...'
+                // Example for Deployment:
+                // sh 'scp target/*.jar user@server:/path/to/deploy'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline Finished 🎉'
+        }
+        failure {
+            echo '❌ Build Failed!'
+        }
+        success {
+            echo '✅ Build Successful!'
+        }
+    }
+}
